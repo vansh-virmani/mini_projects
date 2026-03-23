@@ -1,10 +1,10 @@
-def detect_pattern(similar_bugs,category=None):
+def detect_pattern(similar_bugs,category):
     count=len(similar_bugs)
 
-    if count>=3:
+    if count>=2:
         return {
             "pattern":True,
-            "message":f"You are repeatedly making {category} mistakes ({count} times)"
+            "message": f" Pattern detected: You frequently make '{category}' mistakes ({count} similar bugs)"
         }
     
     return {

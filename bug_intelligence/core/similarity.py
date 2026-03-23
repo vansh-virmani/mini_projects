@@ -11,10 +11,13 @@ def cosine_similarity(vec1,vec2):
 
     return dot_product /(norm1*norm2)
 
-def find_similar(new_embeddings,database,threshold=0.7):
+def find_similar(new_embeddings,database,category,threshold=0.6):
     results=[]
 
     for bug in database:
+        if bug["category"] !=category:
+            continue
+
         sim=cosine_similarity(new_embeddings,bug["embedding"])
 
         if sim>threshold:

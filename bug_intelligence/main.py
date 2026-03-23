@@ -1,17 +1,25 @@
 from core.embedder import embed_text
 from core.similarity import find_similar
 from core.analyzer import detect_pattern
+from core.classifier import classify_bug
 
 
 bug_database = [
     {
         "text": "cannot concatenate str and int",
-        "embedding": embed_text("cannot concatenate str and int")
+        "embedding": embed_text("cannot concatenate str and int"),
+        "category": "type_error"
     },
     {
-        "text": "list index out of range",
-        "embedding": embed_text("list index out of range")
+        "text": "unsupported operand type int and str",
+        "embedding": embed_text("unsupported operand type int and str"),
+        "category": "type_error"
     },
+    {
+        "text": "coroutine was never awaited",
+        "embedding": embed_text("coroutine was never awaited"),
+        "category": "async_misuse"
+    }
 ]
 
 
@@ -20,9 +28,16 @@ bug_database = [
 if __name__=="__main__":
     text=input("Enter bug: ")
 
+    #classification
+    category=classify_bug(text)
+    #embeddings
     embeddings=embed_text(text)
-    similar=find_similar(embeddings,bug_database)
-    pattern =detect_pattern(similar,category="type_error")
+    #similarity
+    similar=find_similar(embeddings,bug_database,category)
+    #patern_detection
+    pattern =detect_pattern(similar,category)
+    print(f"\n category: {category}")
+
 
     print("\nSimilar Bugs:") 
     for item in similar: 
