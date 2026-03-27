@@ -2,15 +2,23 @@ import os
 from sentence_transformers import SentenceTransformer
 from huggingface_hub import login
 
-
-token=os.getenv("HUGGINGFACE_TOKEN")
-
+# login (optional)
+token = os.getenv("HUGGINGFACE_TOKEN")
 if token:
     login(token)
 
-# Load model (works without token too)
-model = SentenceTransformer('all-MiniLM-L6-v2')
+model = None  # ❗ don't load immediately
+
+
+def get_model():
+    global model
+    if model is None:
+        print("Loading ML model...")  # for debugging
+        model = SentenceTransformer('all-MiniLM-L6-v2')
+    return model
+
 
 def embed_text(text):
-    embeddings = model.encode(text,normalize_embeddings=True)
+    model_instance = get_model()
+    embeddings = model_instance.encode(text, normalize_embeddings=True)
     return embeddings
