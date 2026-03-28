@@ -11,8 +11,8 @@ from core.similarity import cosine_similarity
 from data.concept_map import CONCEPT_MAP
 from utils.text import normalize
 
-client=InferenceClient(
-    model="mistralai/Mistral-7B-Instruct-v0.3",
+client = InferenceClient(
+    model="Qwen/Qwen2.5-7B-Instruct",  
     token=os.getenv("HUGGINGFACE_TOKEN")
 )
 

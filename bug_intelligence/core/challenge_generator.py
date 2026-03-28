@@ -7,8 +7,8 @@ from utils.text import normalize
 from utils.fallback_challenges import FALLBACK_CHALLENGES
 
 client = InferenceClient(
-    model="mistralai/Mistral-7B-Instruct-v0.3",
-    token = os.getenv("HUGGINGFACE_TOKEN")
+    model="Qwen/Qwen2.5-7B-Instruct",  
+    token=os.getenv("HUGGINGFACE_TOKEN")
 )
 
 
@@ -125,11 +125,15 @@ def generate_challenge(
             raise ValueError("Missing fields in LLM response")
 
         return result
+    
+    except Exception as e:
+        print(f"DEBUG — LLM failed: {e}")
+        return _get_fallback(category)
 
-    except Exception:
-        # LLM failed — return hardcoded fallback for this category
-        return FALLBACK_CHALLENGES.get(
-            category,
-            FALLBACK_CHALLENGES["logic_error"]  # default if category unknown
-        )
+    # except Exception:
+    #     # LLM failed — return hardcoded fallback for this category
+    #     return FALLBACK_CHALLENGES.get(
+    #         category,
+    #         FALLBACK_CHALLENGES["logic_error"]  # default if category unknown
+    #     )
 
