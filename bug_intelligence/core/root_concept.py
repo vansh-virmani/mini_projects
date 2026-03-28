@@ -11,8 +11,8 @@ from core.similarity import cosine_similarity
 from data.concept_map import CONCEPT_MAP
 from utils.text import normalize
 
-client=InferenceClient(
-    model="mistralai/Mistral-7B-Instruct-v0.3",
+client = InferenceClient(
+    model="Qwen/Qwen2.5-7B-Instruct",  
     token=os.getenv("HUGGINGFACE_TOKEN")
 )
 
@@ -37,9 +37,7 @@ for language,categories in CONCEPT_MAP.items():
 
 
 """LAYER 1: RULE BASED LOOKUP"""
-def _rule_based_concept(
-        category: str,error_text:str,language:str) -> Optional[dict]:
-    
+def _rule_based_concept(category: str, error_text: str, language: str) -> Optional[dict]:
     lang_map = CONCEPT_MAP.get(language, CONCEPT_MAP["python"])
     concepts = lang_map.get(category)
 
@@ -54,7 +52,7 @@ def _rule_based_concept(
         if any(kw in error_normalized for kw in concept["keywords"]):
             return concept
 
-    return concepts[0]
+    return None  # ← no keyword matched, let embeddings try
 
 
 """LAYER 2 : EMBEDDING MATCH"""
@@ -98,10 +96,24 @@ def _embedding_concept(
 """LAYER 3 LLM FALLBACK"""
 
 def _safe_parse(text: str) -> dict:
+    """Extract JSON even if model adds extra text around it."""
+    
+    # find the JSON block
     match = re.search(r'\{.*\}', text, re.DOTALL)
-    if match:
-        return json.loads(match.group())
-    raise ValueError("No JSON found in LLM response")
+    if not match:
+        raise ValueError("No JSON found in response")
+    
+    raw = match.group()
+    
+    # fix invalid escape sequences before parsing
+    # replaces any \x that isn't a valid JSON escape
+    raw = re.sub(
+        r'\\(?!["\\/bfnrtu])',  # match \ not followed by valid escape chars
+        r'\\\\',                # replace with double backslash
+        raw
+    )
+    
+    return json.loads(raw)
 
 def _llm_concept(
     category: str,
@@ -109,7 +121,9 @@ def _llm_concept(
     language: str
 ) -> dict:
 
-    prompt = f"""A {language} developer hit this error:
+    prompt = f"""You are a coding mentor. Respond with valid JSON only.
+
+A {language} developer hit this error:
 "{error_text}"
 
 It is classified as: {category}
