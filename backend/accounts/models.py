@@ -2,8 +2,24 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
+from datetime import timedelta
 
 class UserProfile( models.Model):
+     def update_streak(self):
+        today = timezone.now().date()
+
+        if self.last_active == today:
+            return
+
+        if self.last_active is None:
+            self.streak = 1
+        else:
+            diff = (today - self.last_active).days
+            self.streak = self.streak + 1 if diff == 1 else 1
+
+        self.last_active = today
+        self.save()
      
      
 
